@@ -132,10 +132,10 @@ void loop() {
   delay(20000); // send data every 30 seconds (10 second delay in checkWateringConditions()
 
   // Watering (TEST VERSION FOR VIDEO) 
-  //digitalWrite(pump, LOW); // activate pump for 5 seconds
-  //delay(5000);
+  //digitalWrite(pump, LOW); // activate pump for 10 seconds
+  //delay(10000);
   //digitalWrite(pump, HIGH); // deactivate pump
-  //delay(25000); // 25 second delay before sending data again
+  //delay(20000); // 20 second delay before sending data again
 }
 
 // function that prints time, according to RTC
