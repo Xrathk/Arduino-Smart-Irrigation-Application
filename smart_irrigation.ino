@@ -79,7 +79,7 @@ void setup() {
 
 void loop() {
   // Loop code
-  digitalWrite(pump, LOW); // pump deactivated
+  digitalWrite(pump, HIGH); // pump deactivated
   digitalWrite(ledPin, HIGH); // turn on LED during data transfer
   RtcDateTime now = Rtc.GetDateTime(); // get time
   
@@ -120,15 +120,22 @@ void loop() {
   printDateTime(now); // print time of data transfer
   delay(30000); // send data every 30 seconds
 
+  now = Rtc.GetDateTime(); // get time
   digitalWrite(ledPin, HIGH); // turn on LED during data transfer
   ThingSpeak.writeField(MyIoT, 2, temperature, writeAPIKey);
   digitalWrite(ledPin, LOW); // turn off LED during downtime
   Serial.println("Sending temperature data to ThingSpeak... ");
   printDateTime(now); // print time of data transfer
 
-  // Watering (TEST VERSION) 
-  digitalWrite(pump, HIGH); // pump activated // watering plant when temperature data is sent 
-  delay(30000); // send data every 30 seconds
+  // Watering  
+  checkWateringConditions(now,moisture_percentage);
+  delay(20000); // send data every 30 seconds (10 second delay in checkWateringConditions()
+
+  // Watering (TEST VERSION FOR VIDEO) 
+  //digitalWrite(pump, LOW); // activate pump for 5 seconds
+  //delay(5000);
+  //digitalWrite(pump, HIGH); // deactivate pump
+  //delay(25000); // 25 second delay before sending data again
 }
 
 // function that prints time, according to RTC
@@ -136,6 +143,7 @@ void loop() {
 
 void printDateTime(const RtcDateTime& dt)
 {
+    // saving datetime in char array
     char datestring[20];
 
     snprintf_P(datestring, 
@@ -147,6 +155,37 @@ void printDateTime(const RtcDateTime& dt)
             dt.Hour(),
             dt.Minute(),
             dt.Second() );
+    // printing full time format
     Serial.print(datestring);
     Serial.println();
+}
+
+// function that checks whether plant should be waterred or not
+void checkWateringConditions(const RtcDateTime& dt, int moisture_percentage)
+{
+    // getting time
+    char datestring[20];
+
+    // keeping only hour and minute 
+    snprintf_P(datestring, 
+            countof(datestring),
+            PSTR("%02u:%02u"),
+            dt.Hour(),
+            dt.Minute());
+            
+   // if time is 11:00 exactly, check for moisture
+    if (strcmp(datestring,"11:00")==0) {
+      Serial.println("Checking moisture...");
+      if (moisture_percentage < 70) { // water plant if moisture is less than 70%
+        Serial.println("Watering plant!");
+        digitalWrite(pump, LOW); // activate pump to water plant
+      } else {  // moisture is above or equal to 70%, so we can assume plant is watered
+        Serial.println("Soil moisture above 70%, watering plant is not necessery.");
+        
+      }
+    } 
+
+    // 10 second delay
+    delay(10000);
+    digitalWrite(pump, HIGH); // deactivate pump if it's activated
 }
